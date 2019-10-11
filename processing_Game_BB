@@ -1,0 +1,214 @@
+//classic game : Bubble Buster !
+// Created by Lakshmi Sivaram
+
+//     Game rules:
+//    burst the green bubble with the mouse clickfor 1 point
+//    If you hit the red bubble , you lose 1 point
+//    If you score 20 points ,you win!
+//    If you score below 0 at amy point, you lose
+//    Press on Green rectangle to continue
+
+// using ArrayList to create Green and Red bubbles
+
+
+ArrayList<Bubble>gbubbles;     // target to hit
+ArrayList<Bubble>rbubbles;     // distractor
+
+int score=0;                  // variable to store scores
+String gameState;             // variable to switch between instructions and game play mode 
+
+void setup() {
+  background(0);
+  size(700, 700);
+  //fullScreen();
+  ellipseMode(RADIUS);
+  frameRate(40);
+
+  float xpos= width/2;
+  float ypos = height/2;
+
+  // initialize the gameState to instructions mode first.
+  gameState = "menu";               
+  // creating Green bubbles ArrayList
+  gbubbles = new ArrayList<Bubble>();         
+  for (int i=0; i<=30; i++) {
+    gbubbles.add(new Bubble(color(0, 255, 0), random(xpos), random(ypos), 20, random(2, 2.8), random(2.2, 3)));
+  }
+
+  // creating Red bubbles ArrayList
+  rbubbles = new ArrayList<Bubble>();          
+  for (int i=0; i<=15; i++) {
+    rbubbles.add(new Bubble(color(255, 0, 0), random(ypos), random(xpos), 20, random(2, 2.8), random(2.2, 3)));
+  }
+}
+// Rectangle object to start the game
+void mouseClicked() {
+  // check the value of mouseX and mouseY are inside the rectangle(ENTER)
+  // rect(100, 300, 60, 60, 10);
+  if (mouseX >100 && mouseX < (100+60) && mouseY > 300 && mouseY <(300+60)) {
+    fill(0, 150, 150);
+    gameState = "game";
+  }
+}
+
+
+void draw() {
+  background(0);
+  if (gameState == "menu") {
+    //menu: instructions to play the game 
+    int xp=40;
+    int yp=100;
+    fill(150);  
+    textSize(30);
+    text("Bubble Buster!", xp+200, 50);
+    textSize(20);
+    fill(0, 150, 0);
+    text("Game rules: burst the green bubble with the mouseclick for 1 point", xp, yp);
+    text("If you hit the red bubble , you lose 1 point", xp, yp+20);
+    text("If you score 20 points ,you win!", xp, yp+50);
+    text("If you score below 0 at any point, you lose", xp, yp+80);
+    text("Press on Green rectangle to continue", xp, yp+140);
+    rect(100, 300, 100, 60, 10);
+  } else if (gameState == "game") {
+    // game mode
+    textSize(30);
+    text("score="+ score, 300, 100);
+    //when winning score is achieved,clear screen and display message
+    if (score ==10) {
+      gbubbles.clear();
+      rbubbles.clear();
+      textSize(50);
+      text("You Win", 30, 60);
+      for (int i=0; i<10; i++) {
+        fill(0, 0, 200);
+        star(random(i*50), random(i*40), 5, 70, 20);
+      }
+    }
+    if (score < 0)
+    {
+
+      gbubbles.clear();
+      rbubbles.clear();
+      textSize(30);
+      text("You just Lost the Game,Better Luck next time!", 30, 60);
+    }
+
+
+    for (int i=0; i<gbubbles.size(); i++) {
+
+      Bubble gb = gbubbles.get(i);
+      gb.move();
+      gb.display();
+    }
+
+    for (int i=0; i<rbubbles.size(); i++) {
+
+      Bubble rb = rbubbles.get(i);
+      rb.move();
+      rb.display();
+    }
+  }
+} 
+
+
+
+
+void mousePressed() {
+  for (int i=0; i<gbubbles.size(); i++) { 
+    if (gbubbles.get(i).bubblehit(mouseX, mouseY) == 1) {
+      gbubbles.remove(i);
+      score=score+1;
+    }
+  }
+
+  for (int i=0; i<rbubbles.size(); i++) { 
+    if (rbubbles.get(i).bubblehit(mouseX, mouseY) == 1) {
+      rbubbles.remove(i);
+      score=score-1;
+    }
+  }
+}
+
+
+//Bubble class: with move ,display, getting hit functions
+
+
+class Bubble {
+  color c;
+  float xpos;
+  float ypos;
+  float xspeed;
+  float yspeed;
+  float score = 0; 
+  float rad;
+  int xdirection=1;
+  int ydirection=1;
+
+   Bubble(color tempC, float tempX, float tempY, float tempRad, 
+    float tempXSpeed, float tempYSpeed) {
+    c=tempC;
+    xpos=tempX;
+    ypos=tempY;
+    xspeed=tempXSpeed;
+    yspeed=tempYSpeed;
+    rad=tempRad;
+  } 
+
+
+  void move() {
+    xpos = xpos + ( xspeed * xdirection );
+    ypos = ypos + ( yspeed * ydirection );
+
+    // Test to see if the shape exceeds the boundaries of the screen
+    // If it does, reverse its direction by multiplying by -1
+    if (xpos > width-rad || xpos < rad) {
+      xdirection *=-1;
+      // xpos=0;
+    }
+    if (ypos > height-rad || ypos < rad) {
+      ydirection *= -1;
+      // ypos=0;
+    }
+  }
+
+  void display() {
+    noStroke();
+    fill(c);
+    ellipse(xpos, ypos, rad, rad);
+  }
+
+
+  int bubblehit(float pX, float pY) {
+    float d= dist(pX, pY, this.xpos, this.ypos);
+    if (d < this.rad) {
+      //print("bubble hit");
+      //this.c=color(255,0,0);
+      //noStroke();
+      //this.c=255;     
+      return 1;
+      //score=score+1;
+    } else {
+      return 0;
+    }
+  }
+}
+
+
+
+
+// star method to be called if Won
+
+void star(float x, float y, float radius1, float radius2, int npoints) {
+  float angle = TWO_PI / npoints;
+  float halfAngle = angle/2.0;
+  beginShape();
+  for (float a = 0; a < TWO_PI; a += angle) {
+    float sx = x + cos(a) * radius2;
+    float sy = y + sin(a) * radius2;
+    vertex(sx, sy);
+    sx = x + cos(a+halfAngle) * radius1;
+    sy = y + sin(a+halfAngle) * radius1;
+    vertex(sx, sy);
+  }
+  endShape(CLOSE);
+}
